@@ -114,6 +114,15 @@
       background: var(--accent);
     }
 
+    .test-level {
+      margin: -0.45rem 0 1rem;
+    }
+
+    .test-level .tab {
+      padding: 0.4rem 1.05rem;
+      font-size: 0.95rem;
+    }
+
     .panel {
       background: var(--panel);
       border: 3px solid var(--ink);
@@ -195,6 +204,44 @@
     .actor.supplier .actor-label { color: var(--supplier); }
     .actor.shop .actor-label { color: var(--shop); }
     .actor.customer .actor-label { color: var(--customer); }
+
+    .scene.cue-inc { --cue-color: #e09a00; --cue-glow: rgba(224, 154, 0, 0.32); }
+    .scene.cue-disc { --cue-color: #3d8bfd; --cue-glow: rgba(61, 139, 253, 0.32); }
+    .scene.cue-pl { --cue-color: #ff6b4a; --cue-glow: rgba(255, 107, 74, 0.32); }
+    .scene.cue-pl.cue-profit { --cue-color: #1f9d55; --cue-glow: rgba(31, 157, 85, 0.32); }
+    .scene.cue-pl.cue-loss { --cue-color: #d64545; --cue-glow: rgba(214, 69, 69, 0.32); }
+
+    .scene.cue-on .actor,
+    .scene.cue-on .arrow-col {
+      transition: opacity 0.2s ease;
+    }
+
+    .scene.cue-inc .actor.customer,
+    .scene.cue-inc .arrow-disc,
+    .scene.cue-disc .actor.supplier,
+    .scene.cue-disc .arrow-inc,
+    .scene.cue-pl .actor.shop,
+    .scene.cue-pl .arrow-inc,
+    .scene.cue-pl .arrow-disc {
+      opacity: 0.34;
+    }
+
+    .actor.cue svg {
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 22px;
+      box-shadow:
+        0 0 0 4px var(--cue-color, #ffb703),
+        0 0 0 10px var(--cue-glow, rgba(255, 183, 3, 0.32));
+      filter: drop-shadow(0 6px 0 rgba(30, 42, 58, 0.12));
+    }
+
+    .actor.cue .actor-label {
+      display: inline-block;
+      padding: 0.08rem 0.65rem 0.14rem;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--cue-color, #ffb703);
+    }
 
     .field {
       background: #fff;
@@ -301,7 +348,7 @@
     }
 
     .arrow-col .field {
-      width: min(160px, 100%);
+      width: min(190px, 100%);
     }
 
     .statement-wrap {
@@ -505,6 +552,87 @@
     .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
     .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 
+    .scoreboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .scoreboard[hidden] {
+      display: none !important;
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-width: 5.4rem;
+      padding: 0.4rem 0.85rem;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 3px 3px 0 rgba(30, 42, 58, 0.18);
+      font-weight: 800;
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .score-mark {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .score-mark.tick { color: var(--ok); }
+    .score-mark.cross { color: var(--bad); }
+    .score-mark.crown { font-size: 1.15rem; }
+
+    body.mode-test .help-tip,
+    body.mode-test .legend,
+    body.mode-test .statement-end {
+      display: none;
+    }
+
+    body.mode-test .statement-wrap {
+      display: block;
+    }
+
+    body.mode-test .statement {
+      border-radius: 16px;
+      border: 3px dashed var(--hl-pl);
+    }
+
+    body.mode-test .statement-wrap.profit .statement {
+      border-color: var(--ok);
+    }
+
+    body.mode-test .statement-wrap.loss .statement {
+      border-color: var(--bad);
+    }
+
+    body.mode-test .field.hl-pl:not(.wrong):not(.correct),
+    body.mode-test .field.hl-disc:not(.wrong):not(.correct),
+    body.mode-test .field.hl-both:not(.wrong):not(.correct) {
+      border: 3px solid var(--ink);
+      background: #fff;
+      box-shadow: 3px 3px 0 rgba(30, 42, 58, 0.12);
+      animation: none;
+    }
+
+    body.mode-test .field.given:not(.wrong):not(.correct) {
+      background: #f3f6fb;
+    }
+
+    .score.pop { animation: score-pop 0.35s ease; }
+
+    @keyframes score-pop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
     .mode { display: none; }
     .mode.active { display: block; }
 
@@ -572,12 +700,17 @@
       <p>Follow the goods from supplier → shop → customer</p>
     </header>
 
-    <div class="tabs" role="tablist">
+    <div class="tabs" id="modeTabs" role="tablist">
       <button type="button" class="tab active" data-mode="learn" role="tab" aria-selected="true">Learn</button>
       <button type="button" class="tab" data-mode="test" role="tab" aria-selected="false">Test</button>
     </div>
 
-    <p class="help-tip" id="modeTip">Type any values — related prices and percentages fill in when they can be found exactly.</p>
+    <div class="tabs test-level" id="testLevel" role="tablist" hidden>
+      <button type="button" class="tab active" data-level="normal" role="tab" aria-selected="true">Normal</button>
+      <button type="button" class="tab" data-level="challenge" role="tab" aria-selected="false">Challenging</button>
+    </div>
+
+    <p class="help-tip" id="modeTip">Type any values — related prices and percentages fill in. Repeating decimals show two places, like 33.33...%.</p>
 
     <div class="panel">
       <div class="legend" aria-hidden="true">
@@ -606,13 +739,13 @@
             <label for="cp">Cost price</label>
             <div class="input-row">
               <span class="prefix">$</span>
-              <input id="cp" inputmode="numeric" autocomplete="off" placeholder="?" />
+              <input id="cp" inputmode="decimal" autocomplete="off" placeholder="?" />
             </div>
           </div>
         </div>
 
         <!-- Arrow: percentage increase -->
-        <div class="arrow-col">
+        <div class="arrow-col arrow-inc">
           <svg class="arrow-art" viewBox="0 0 72 36" aria-hidden="true">
             <path d="M4 18h52" stroke="#1e2a3a" stroke-width="4" stroke-linecap="round"/>
             <path d="M48 8l16 10-16 10" fill="#ffb703" stroke="#1e2a3a" stroke-width="3" stroke-linejoin="round"/>
@@ -620,7 +753,7 @@
           <div class="field" data-field="inc">
             <label for="inc">Percentage increase</label>
             <div class="input-row">
-              <input id="inc" inputmode="numeric" autocomplete="off" placeholder="?" />
+              <input id="inc" inputmode="decimal" autocomplete="off" placeholder="?" />
               <span class="suffix">%</span>
             </div>
           </div>
@@ -644,13 +777,13 @@
             <label for="mp">Marked price</label>
             <div class="input-row">
               <span class="prefix">$</span>
-              <input id="mp" inputmode="numeric" autocomplete="off" placeholder="?" />
+              <input id="mp" inputmode="decimal" autocomplete="off" placeholder="?" />
             </div>
           </div>
         </div>
 
         <!-- Arrow: discount -->
-        <div class="arrow-col">
+        <div class="arrow-col arrow-disc">
           <svg class="arrow-art" viewBox="0 0 72 36" aria-hidden="true">
             <path d="M4 18h52" stroke="#1e2a3a" stroke-width="4" stroke-linecap="round"/>
             <path d="M48 8l16 10-16 10" fill="#3d8bfd" stroke="#1e2a3a" stroke-width="3" stroke-linejoin="round"/>
@@ -658,7 +791,7 @@
           <div class="field" data-field="disc">
             <label for="disc">Discount per cent</label>
             <div class="input-row">
-              <input id="disc" inputmode="numeric" autocomplete="off" placeholder="?" />
+              <input id="disc" inputmode="decimal" autocomplete="off" placeholder="?" />
               <span class="suffix">%</span>
             </div>
           </div>
@@ -683,7 +816,7 @@
             <label for="sp">Selling price</label>
             <div class="input-row">
               <span class="prefix">$</span>
-              <input id="sp" inputmode="numeric" autocomplete="off" placeholder="?" />
+              <input id="sp" inputmode="decimal" autocomplete="off" placeholder="?" />
             </div>
           </div>
         </div>
@@ -719,6 +852,21 @@
         <button type="button" class="btn" id="checkBtn">Check answers</button>
         <button type="button" class="btn secondary" id="newBtn">New question</button>
       </div>
+
+      <div class="scoreboard" id="scoreboard" hidden aria-label="Test score">
+        <div class="score" id="scoreCorrectWrap" title="Questions with every answer correct">
+          <span class="score-mark tick" aria-hidden="true">✓</span>
+          <span id="scoreCorrect">0</span>
+        </div>
+        <div class="score" id="scoreWrongWrap" title="Questions with a mistake">
+          <span class="score-mark cross" aria-hidden="true">✗</span>
+          <span id="scoreWrong">0</span>
+        </div>
+        <div class="score" id="scoreBestWrap" title="Best run of correct questions">
+          <span class="score-mark crown" aria-hidden="true">👑</span>
+          <span id="scoreBest">0</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -748,23 +896,26 @@
   const hintBox = document.getElementById("hintBox");
   const testActions = document.getElementById("testActions");
   const modeTip = document.getElementById("modeTip");
+  const scoreboard = document.getElementById("scoreboard");
+  const scoreCorrectEl = document.getElementById("scoreCorrect");
+  const scoreWrongEl = document.getElementById("scoreWrong");
+  const scoreBestEl = document.getElementById("scoreBest");
+  const scoreCorrectWrap = document.getElementById("scoreCorrectWrap");
+  const scoreWrongWrap = document.getElementById("scoreWrongWrap");
+  const scoreBestWrap = document.getElementById("scoreBestWrap");
 
   let mode = "learn";
+  let testLevel = "normal";
   /** @type {Record<string, {value: number, t: number}>} */
   let anchors = {};
   let clock = 0;
   let suppressInput = false;
   let testAnswer = null;
   let testBlanks = [];
-
-  const FORMULAS = {
-    cp: "Cost price = Marked price × 100 / (100 + percentage increase)",
-    inc: "Percentage increase = (Marked price − Cost price) / Cost price × 100%",
-    mp: "Marked price = Cost price × (100 + percentage increase) / 100",
-    disc: "Discount per cent = (Marked price − Selling price) / Marked price × 100%",
-    sp: "Selling price = Marked price × (100 − discount per cent) / 100",
-    pl_profit: "Profit per cent = (Selling price − Cost price) / Cost price × 100%",
-    pl_loss: "Loss per cent = (Cost price − Selling price) / Cost price × 100%",
+  /** @type {Record<"normal"|"challenge", {outcomes: Array<"correct"|"wrong">, open: boolean, best: number}>} */
+  const levelScores = {
+    normal: { outcomes: [], open: false, best: 0 },
+    challenge: { outcomes: [], open: false, best: 0 },
   };
 
   function isInt(n) {
@@ -785,11 +936,136 @@
     return parseInt(raw, 10);
   }
 
+  function gcdBig(a, b) {
+    a = a < 0n ? -a : a;
+    b = b < 0n ? -b : b;
+    while (b) {
+      const t = b;
+      b = a % b;
+      a = t;
+    }
+    return a || 1n;
+  }
+
+  function rat(n, d) {
+    if (d < 0n) {
+      n = -n;
+      d = -d;
+    }
+    if (n === 0n) return { n: 0n, d: 1n };
+    const g = gcdBig(n, d);
+    return { n: n / g, d: d / g };
+  }
+
+  function rint(k) {
+    return { n: BigInt(k), d: 1n };
+  }
+
+  function req(a, b) {
+    return a.n === b.n && a.d === b.d;
+  }
+
+  function rzero(a) {
+    return a.n === 0n;
+  }
+
+  function radd(a, b) {
+    return rat(a.n * b.d + b.n * a.d, a.d * b.d);
+  }
+
+  function rsub(a, b) {
+    return rat(a.n * b.d - b.n * a.d, a.d * b.d);
+  }
+
+  function rmul(a, b) {
+    return rat(a.n * b.n, a.d * b.d);
+  }
+
+  function rdiv(a, b) {
+    if (b.n === 0n) return null;
+    return rat(a.n * b.d, a.d * b.n);
+  }
+
+  /** Learn input: integers or terminating decimals. Test stays integer-only. */
+  function parseLearn(raw) {
+    const s = String(raw).trim();
+    if (s === "") return null;
+    const m = s.match(/^(-?)(?:(\d+)(?:\.(\d+))?|\.(\d+))$/);
+    if (!m) return null;
+    const sign = m[1] === "-" ? -1n : 1n;
+    const digits = m[4] != null ? m[4] : m[2] + (m[3] || "");
+    const places = m[4] != null ? m[4].length : (m[3] ? m[3].length : 0);
+    if (!digits || digits.length > 40) return null;
+    return rat(sign * BigInt(digits), 10n ** BigInt(places));
+  }
+
+  /**
+   * Integer as-is. Terminating decimals show every digit.
+   * Recurring decimals show two places and "...", e.g. 100/3 → "33.33...".
+   */
+  function formatRational(r) {
+    let n = r.n;
+    let d = r.d;
+    if (d < 0n) {
+      n = -n;
+      d = -d;
+    }
+    const neg = n < 0n;
+    if (neg) n = -n;
+    const reduced = rat(n, d);
+    n = reduced.n;
+    d = reduced.d;
+    const sign = neg ? "-" : "";
+    if (d === 1n) return sign + n.toString();
+
+    let den = d;
+    let twos = 0;
+    let fives = 0;
+    while (den % 2n === 0n) {
+      den /= 2n;
+      twos++;
+    }
+    while (den % 5n === 0n) {
+      den /= 5n;
+      fives++;
+    }
+    if (den === 1n) {
+      const places = Math.max(twos, fives);
+      const scale = 10n ** BigInt(places);
+      const scaled = (n * scale) / d;
+      const intPart = scaled / scale;
+      let frac = (scaled % scale).toString().padStart(places, "0");
+      frac = frac.replace(/0+$/, "");
+      return sign + intPart.toString() + "." + frac;
+    }
+
+    const intPart = n / d;
+    let rem = n % d;
+    const d1 = (rem * 10n) / d;
+    rem = (rem * 10n) % d;
+    const d2 = (rem * 10n) / d;
+    return sign + intPart.toString() + "." + d1.toString() + d2.toString() + "...";
+  }
+
+  function displayText(value) {
+    if (value == null) return "";
+    if (typeof value === "number") return String(value);
+    return formatRational(value);
+  }
+
   function setInput(key, value, asGiven) {
     const el = inputs[key];
-    suppressInput = true;
-    el.value = value == null ? "" : String(value);
-    suppressInput = false;
+    const text = displayText(value);
+    let keepTyping = false;
+    if (mode === "learn" && value != null && typeof value !== "number" && document.activeElement === el) {
+      const typed = parseLearn(el.value.trim());
+      keepTyping = typed != null && req(typed, value);
+    }
+    if (!keepTyping) {
+      suppressInput = true;
+      el.value = text;
+      suppressInput = false;
+    }
     if (key !== "pl" && fieldEls[key]) {
       fieldEls[key].classList.toggle("given", !!asGiven);
     }
@@ -901,8 +1177,65 @@
     return v;
   }
 
+  function derivePLRational(cp, sp) {
+    if (cp == null || sp == null || rzero(cp)) return { kind: null, value: null };
+    if (req(cp, sp)) return { kind: "even", value: rint(0) };
+    const pct = rdiv(rmul(rsub(sp, cp), rint(100)), cp);
+    if (pct.n < 0n) return { kind: "loss", value: { n: -pct.n, d: pct.d } };
+    return { kind: "profit", value: pct };
+  }
+
+  /** Learn solver: exact rationals, including non-integer percentages and prices. */
+  function solveLearn(seed) {
+    const v = {};
+    const time = {};
+    Object.keys(seed).forEach((k) => {
+      v[k] = seed[k].value;
+      time[k] = seed[k].t;
+    });
+
+    const stamp = (a, b) => Math.max(time[a] ?? 0, time[b] ?? 0);
+    const setVal = (key, val, tin) => {
+      if (val == null) return false;
+      if (time[key] != null && time[key] > tin) return false;
+      if (v[key] != null && time[key] != null && req(v[key], val)) return false;
+      v[key] = val;
+      time[key] = tin;
+      return true;
+    };
+
+    const H = rint(100);
+    let guard = 0;
+    let changed = true;
+    while (changed && guard++ < 40) {
+      changed = false;
+
+      if (v.cp != null && v.inc != null) {
+        changed = setVal("mp", rdiv(rmul(v.cp, radd(H, v.inc)), H), stamp("cp", "inc")) || changed;
+      }
+      if (v.cp != null && v.mp != null && !rzero(v.cp)) {
+        changed = setVal("inc", rdiv(rmul(rsub(v.mp, v.cp), H), v.cp), stamp("cp", "mp")) || changed;
+      }
+      if (v.mp != null && v.inc != null && !rzero(radd(H, v.inc))) {
+        changed = setVal("cp", rdiv(rmul(v.mp, H), radd(H, v.inc)), stamp("mp", "inc")) || changed;
+      }
+
+      if (v.mp != null && v.disc != null) {
+        changed = setVal("sp", rdiv(rmul(v.mp, rsub(H, v.disc)), H), stamp("mp", "disc")) || changed;
+      }
+      if (v.mp != null && v.sp != null && !rzero(v.mp)) {
+        changed = setVal("disc", rdiv(rmul(rsub(v.mp, v.sp), H), v.mp), stamp("mp", "sp")) || changed;
+      }
+      if (v.sp != null && v.disc != null && !rzero(rsub(H, v.disc))) {
+        changed = setVal("mp", rdiv(rmul(v.sp, H), rsub(H, v.disc)), stamp("sp", "disc")) || changed;
+      }
+    }
+
+    return v;
+  }
+
   function recomputeLearn() {
-    return solve(anchors, null);
+    return solveLearn(anchors);
   }
 
   function renderLearn(v) {
@@ -913,7 +1246,7 @@
     });
     // Drop stale anchors overwritten by newer inputs
     Object.keys(anchors).forEach((key) => {
-      if (v[key] != null && anchors[key].value !== v[key]) {
+      if (v[key] != null && !req(anchors[key].value, v[key])) {
         delete anchors[key];
       }
     });
@@ -922,19 +1255,19 @@
 
   function updateStatementLearn(v) {
     plWrap.hidden = true;
-    const plInfo = derivePL(v.cp, v.sp);
+    const plInfo = derivePLRational(v.cp, v.sp);
     if (plInfo.kind === "profit") {
       setStatementTone("profit");
-      statementText.textContent = `Profit per cent = ${plInfo.value}%`;
+      statementText.textContent = `Profit per cent = ${formatRational(plInfo.value)}%`;
     } else if (plInfo.kind === "loss") {
       setStatementTone("loss");
-      statementText.textContent = `Loss per cent = ${plInfo.value}%`;
+      statementText.textContent = `Loss per cent = ${formatRational(plInfo.value)}%`;
     } else if (plInfo.kind === "even") {
       setStatementTone("even");
       statementText.textContent = "Neither profit nor loss (selling price = cost price)";
     } else if (v.cp != null && v.sp != null) {
       setStatementTone(null);
-      statementText.textContent = "Profit or loss per cent is not a whole number for these prices.";
+      statementText.textContent = "Cost price cannot be 0 when working out profit or loss per cent.";
     } else {
       setStatementTone(null);
       statementText.textContent = "Enter cost price and selling price to see profit or loss per cent.";
@@ -944,7 +1277,7 @@
   function onLearnInput(key) {
     if (suppressInput || mode !== "learn") return;
     const raw = inputs[key].value.trim();
-    const val = parseInput(inputs[key]);
+    const val = parseLearn(raw);
     if (raw !== "" && val == null) return;
     upsertAnchor(key, val);
     renderLearn(recomputeLearn());
@@ -956,15 +1289,6 @@
 
   function pick(arr) {
     return arr[randInt(0, arr.length - 1)];
-  }
-
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = randInt(0, i);
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
   }
 
   function gcd(a, b) {
@@ -1000,7 +1324,8 @@
       const plDiff = (sp - cp) * 100;
       if (plDiff % cp !== 0) continue;
       const plSigned = plDiff / cp;
-      if (preferLoss && plSigned >= 0 && attempt < 500) continue;
+      if (plSigned === 0) continue;
+      if (preferLoss && plSigned > 0 && attempt < 500) continue;
       if (!preferLoss && plSigned < 0 && attempt < 300) continue;
 
       return {
@@ -1010,7 +1335,7 @@
         disc,
         sp,
         pl: Math.abs(plSigned),
-        kind: plSigned > 0 ? "profit" : plSigned < 0 ? "loss" : "even",
+        kind: plSigned > 0 ? "profit" : "loss",
       };
     }
 
@@ -1027,6 +1352,21 @@
     // If pl is given, pass kind so magnitude can unlock SP/CP
     const v = solve(seed, seed.pl ? answer.kind : kindForSolve);
     return blanks.every((k) => v[k] === answer[k]);
+  }
+
+  /** Three blanks, so the question shows three numbers, all of which determine the rest. */
+  function chooseBlanks(answer) {
+    const keys = ["cp", "inc", "mp", "disc", "sp", "pl"];
+    const options = [];
+    for (let a = 0; a < keys.length; a++) {
+      for (let b = a + 1; b < keys.length; b++) {
+        for (let c = b + 1; c < keys.length; c++) {
+          const trial = [keys[a], keys[b], keys[c]];
+          if (blanksAreSolvable(answer, trial)) options.push(trial);
+        }
+      }
+    }
+    return options.length ? pick(options) : null;
   }
 
   function renderTestStatement() {
@@ -1059,22 +1399,60 @@
     }
   }
 
+  const scene = document.getElementById("scene");
+  const actorEls = {
+    supplier: scene.querySelector(".actor.supplier"),
+    shop: scene.querySelector(".actor.shop"),
+    customer: scene.querySelector(".actor.customer"),
+  };
+  const CUE_PAIRS = {
+    inc: ["supplier", "shop"],
+    disc: ["shop", "customer"],
+    pl: ["supplier", "customer"],
+  };
+
+  function clearActorCue() {
+    scene.classList.remove("cue-on", "cue-inc", "cue-disc", "cue-pl", "cue-profit", "cue-loss");
+    Object.values(actorEls).forEach((el) => el.classList.remove("cue"));
+  }
+
+  function showActorCue(key) {
+    clearActorCue();
+    if (mode !== "test" || testLevel !== "normal" || !CUE_PAIRS[key]) return;
+    scene.classList.add("cue-on", "cue-" + key);
+    if (key === "pl" && testAnswer) {
+      scene.classList.add(testAnswer.kind === "loss" ? "cue-loss" : "cue-profit");
+    }
+    CUE_PAIRS[key].forEach((name) => actorEls[name].classList.add("cue"));
+  }
+
+  function syncActorCue() {
+    if (mode !== "test") {
+      clearActorCue();
+      return;
+    }
+    const active = document.activeElement;
+    if (active === inputs.inc) showActorCue("inc");
+    else if (active === inputs.disc) showActorCue("disc");
+    else if (active === inputs.pl) showActorCue("pl");
+    else clearActorCue();
+  }
+
   function startTestQuestion() {
     hintBox.classList.remove("show", "success");
     hintBox.innerHTML = "";
     clearFieldStates();
+    clearActorCue();
 
     testAnswer = generateScenario();
-    const blankCount = Math.random() < 0.5 ? 2 : 3;
-    const candidates = ["cp", "inc", "mp", "disc", "sp", "pl"];
-
-    testBlanks = ["mp", "sp"];
-    for (let i = 0; i < 60; i++) {
-      const trial = shuffle(candidates).slice(0, blankCount);
-      if (blanksAreSolvable(testAnswer, trial)) {
-        testBlanks = trial;
-        break;
-      }
+    testBlanks = chooseBlanks(testAnswer);
+    for (let i = 0; i < 20 && !testBlanks; i++) {
+      testAnswer = generateScenario();
+      testBlanks = chooseBlanks(testAnswer);
+    }
+    if (!testBlanks) {
+      testAnswer = { cp: 200, inc: 25, mp: 250, disc: 40, sp: 150, pl: 25, kind: "loss" };
+      testBlanks = ["inc", "disc", "pl"];
     }
 
     FIELDS.forEach((key) => {
@@ -1094,13 +1472,62 @@
     });
 
     renderTestStatement();
+    syncActorCue();
+    levelScores.normal.open = false;
+    levelScores.challenge.open = false;
+  }
+
+  function renderScore() {
+    const board = levelScores[testLevel];
+    let correct = 0;
+    let wrong = 0;
+    let streak = 0;
+    let best = 0;
+    board.outcomes.forEach((outcome) => {
+      if (outcome === "correct") {
+        correct += 1;
+        streak += 1;
+        if (streak > best) best = streak;
+      } else {
+        wrong += 1;
+        streak = 0;
+      }
+    });
+    if (best > board.best) board.best = best;
+    const levelName = testLevel === "challenge" ? "Challenging" : "Normal";
+
+    const paint = (el, wrap, value, label) => {
+      const next = String(value);
+      if (el.textContent !== next) {
+        el.textContent = next;
+        wrap.classList.remove("pop");
+        void wrap.offsetWidth;
+        wrap.classList.add("pop");
+      }
+      wrap.setAttribute("aria-label", levelName + " " + label + ": " + next);
+    };
+    paint(scoreCorrectEl, scoreCorrectWrap, correct, "correct questions");
+    paint(scoreWrongEl, scoreWrongWrap, wrong, "wrong questions");
+    paint(scoreBestEl, scoreBestWrap, board.best, "best run of correct questions");
+    scoreboard.setAttribute("aria-label", levelName + " score");
+  }
+
+  function recordQuestionScore(allCorrect) {
+    const board = levelScores[testLevel];
+    const result = allCorrect ? "correct" : "wrong";
+    if (!board.open) {
+      board.outcomes.push(result);
+      board.open = true;
+    } else {
+      board.outcomes[board.outcomes.length - 1] = result;
+    }
+    renderScore();
   }
 
   function checkTest() {
     if (!testAnswer) return;
     clearFieldStates();
-    const wrong = [];
-    const hints = [];
+    let wrongCount = 0;
 
     testBlanks.forEach((key) => {
       const typed = parseInput(inputs[key]);
@@ -1110,32 +1537,39 @@
         wrap.classList.add("correct");
       } else {
         wrap.classList.add("wrong");
-        wrong.push(key);
-        if (key === "pl") {
-          hints.push(testAnswer.kind === "loss" ? FORMULAS.pl_loss : FORMULAS.pl_profit);
-        } else {
-          hints.push(FORMULAS[key]);
-        }
+        wrongCount += 1;
       }
     });
 
     hintBox.classList.add("show");
-    if (wrong.length === 0) {
+    if (wrongCount === 0) {
       hintBox.classList.add("success");
-      hintBox.innerHTML = "<strong>Well done!</strong> All answers are correct.";
+      hintBox.textContent = "Correct.";
+      recordQuestionScore(true);
     } else {
       hintBox.classList.remove("success");
-      const uniq = [...new Set(hints)];
-      hintBox.innerHTML =
-        "<strong>Not quite — try these formulas:</strong><ul>" +
-        uniq.map((h) => `<li>${h}</li>`).join("") +
-        "</ul>";
+      hintBox.textContent = "Not quite.";
+      recordQuestionScore(false);
+    }
+  }
+
+  function setTestLevel(level) {
+    testLevel = level === "challenge" ? "challenge" : "normal";
+    document.querySelectorAll("#testLevel .tab").forEach((tab) => {
+      const on = tab.dataset.level === testLevel;
+      tab.classList.toggle("active", on);
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    if (mode === "test") {
+      syncActorCue();
+      renderScore();
     }
   }
 
   function setMode(next) {
     mode = next;
-    document.querySelectorAll(".tab").forEach((tab) => {
+    document.body.classList.toggle("mode-test", next === "test");
+    document.querySelectorAll("#modeTabs .tab").forEach((tab) => {
       const on = tab.dataset.mode === next;
       tab.classList.toggle("active", on);
       tab.setAttribute("aria-selected", on ? "true" : "false");
@@ -1144,28 +1578,38 @@
     hintBox.classList.remove("show", "success");
     hintBox.innerHTML = "";
     clearFieldStates();
+    clearActorCue();
 
     if (next === "learn") {
       testActions.hidden = true;
+      scoreboard.hidden = true;
+      document.getElementById("testLevel").hidden = true;
       modeTip.textContent =
-        "Type any values — related prices and percentages fill in when they can be found exactly.";
+        "Type any values — related prices and percentages fill in. Repeating decimals show two places, like 33.33...%.";
       anchors = {};
       clock = 0;
       FIELDS.forEach((key) => {
         if (key === "pl") {
           inputs.pl.value = "";
           inputs.pl.disabled = true;
+          inputs.pl.inputMode = "numeric";
           return;
         }
         inputs[key].disabled = false;
+        inputs[key].inputMode = "decimal";
         setInput(key, null, false);
       });
       plWrap.hidden = true;
       updateStatementLearn({});
     } else {
       testActions.hidden = false;
-      modeTip.textContent =
-        "Some figures are given. Fill in the blanks, then check your answers.";
+      scoreboard.hidden = false;
+      document.getElementById("testLevel").hidden = false;
+      renderScore();
+      modeTip.textContent = "";
+      FIELDS.forEach((key) => {
+        inputs[key].inputMode = "numeric";
+      });
       startTestQuestion();
     }
   }
@@ -1175,14 +1619,37 @@
       if (mode === "learn") onLearnInput(key);
       else if (fieldEls[key]) fieldEls[key].classList.remove("wrong", "correct");
     });
+    inputs[key].addEventListener("blur", () => {
+      if (mode !== "learn" || suppressInput) return;
+      const val = parseLearn(inputs[key].value.trim());
+      if (val == null) return;
+      const text = formatRational(val);
+      if (inputs[key].value !== text) {
+        suppressInput = true;
+        inputs[key].value = text;
+        suppressInput = false;
+      }
+    });
   });
 
   inputs.pl.addEventListener("input", () => {
     plWrap.classList.remove("wrong", "correct");
   });
 
-  document.querySelectorAll(".tab").forEach((tab) => {
+  ["inc", "disc", "pl"].forEach((key) => {
+    inputs[key].addEventListener("focus", () => showActorCue(key));
+    inputs[key].addEventListener("click", () => showActorCue(key));
+    inputs[key].addEventListener("blur", () => {
+      setTimeout(syncActorCue, 0);
+    });
+  });
+
+  document.querySelectorAll("#modeTabs .tab").forEach((tab) => {
     tab.addEventListener("click", () => setMode(tab.dataset.mode));
+  });
+
+  document.querySelectorAll("#testLevel .tab").forEach((tab) => {
+    tab.addEventListener("click", () => setTestLevel(tab.dataset.level));
   });
 
   document.getElementById("checkBtn").addEventListener("click", checkTest);
