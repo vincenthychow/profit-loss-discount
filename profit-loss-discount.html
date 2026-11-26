@@ -505,6 +505,36 @@
       background: transparent;
     }
 
+    .statement .pl-kind {
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      padding: 0.25rem 0.5rem;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 rgba(30, 42, 58, 0.12);
+    }
+
+    .statement .pl-kind:focus {
+      outline: 2px solid var(--hl-pl);
+      outline-offset: 2px;
+    }
+
+    .statement .pl-kind.wrong,
+    .statement .pl-field.wrong {
+      border-color: var(--bad) !important;
+      box-shadow: 0 0 0 4px rgba(214, 69, 69, 0.25) !important;
+      animation: shake 0.4s ease;
+    }
+
+    .statement .pl-kind.correct,
+    .statement .pl-field.correct {
+      border-color: var(--ok) !important;
+      box-shadow: 0 0 0 4px rgba(31, 157, 85, 0.25) !important;
+    }
+
     .hint-box {
       margin-top: 0.85rem;
       padding: 0.75rem 1rem;
@@ -831,6 +861,11 @@
           <span>Cost<br>price</span>
         </div>
         <div class="statement" id="statement">
+          <select id="plKind" class="pl-kind" hidden aria-label="Profit or loss">
+            <option value="">Profit or loss?</option>
+            <option value="profit">Profit</option>
+            <option value="loss">Loss</option>
+          </select>
           <span id="statementText">Enter cost price and selling price to see profit or loss per cent.</span>
           <span class="pl-field" id="plWrap" hidden>
             <input id="pl" inputmode="numeric" autocomplete="off" placeholder="?" />
@@ -884,6 +919,7 @@
   const statementWrap = document.getElementById("statementWrap");
   const statementText = document.getElementById("statementText");
   const plWrap = document.getElementById("plWrap");
+  const plKind = document.getElementById("plKind");
 
   function setStatementTone(tone) {
     statementEl.className = "statement";
@@ -892,6 +928,10 @@
       statementEl.classList.add(tone);
       statementWrap.classList.add(tone);
     }
+  }
+
+  function kindIsAsked() {
+    return mode === "test" && testBlanks.includes("pl");
   }
   const hintBox = document.getElementById("hintBox");
   const testActions = document.getElementById("testActions");
@@ -1076,6 +1116,7 @@
       el.classList.remove("wrong", "correct");
     });
     plWrap.classList.remove("wrong", "correct");
+    plKind.classList.remove("wrong", "correct");
   }
 
   function upsertAnchor(key, value) {
@@ -1371,19 +1412,17 @@
 
   function renderTestStatement() {
     if (testBlanks.includes("pl")) {
+      plKind.hidden = false;
+      plKind.disabled = false;
+      plKind.value = "";
       plWrap.hidden = false;
       inputs.pl.disabled = false;
-      if (testAnswer.kind === "profit") {
-        setStatementTone("profit");
-        statementText.textContent = "Profit per cent =";
-      } else if (testAnswer.kind === "loss") {
-        setStatementTone("loss");
-        statementText.textContent = "Loss per cent =";
-      } else {
-        setStatementTone("even");
-        statementText.textContent = "Neither profit nor loss — enter 0:";
-      }
+      setStatementTone(null);
+      statementText.textContent = "per cent =";
     } else {
+      plKind.hidden = true;
+      plKind.disabled = true;
+      plKind.value = "";
       plWrap.hidden = true;
       inputs.pl.disabled = true;
       if (testAnswer.kind === "profit") {
@@ -1421,7 +1460,9 @@
     if (mode !== "test" || testLevel !== "normal" || !CUE_PAIRS[key]) return;
     scene.classList.add("cue-on", "cue-" + key);
     if (key === "pl" && testAnswer) {
-      scene.classList.add(testAnswer.kind === "loss" ? "cue-loss" : "cue-profit");
+      const chosen = kindIsAsked() ? plKind.value : testAnswer.kind;
+      if (chosen === "loss") scene.classList.add("cue-loss");
+      else if (chosen === "profit") scene.classList.add("cue-profit");
     }
     CUE_PAIRS[key].forEach((name) => actorEls[name].classList.add("cue"));
   }
@@ -1434,7 +1475,7 @@
     const active = document.activeElement;
     if (active === inputs.inc) showActorCue("inc");
     else if (active === inputs.disc) showActorCue("disc");
-    else if (active === inputs.pl) showActorCue("pl");
+    else if (active === inputs.pl || active === plKind) showActorCue("pl");
     else clearActorCue();
   }
 
@@ -1541,6 +1582,16 @@
       }
     });
 
+    if (kindIsAsked()) {
+      if (plKind.value === testAnswer.kind) {
+        plKind.classList.add("correct");
+        setStatementTone(testAnswer.kind);
+      } else {
+        plKind.classList.add("wrong");
+        wrongCount += 1;
+      }
+    }
+
     hintBox.classList.add("show");
     if (wrongCount === 0) {
       hintBox.classList.add("success");
@@ -1600,6 +1651,9 @@
         setInput(key, null, false);
       });
       plWrap.hidden = true;
+      plKind.hidden = true;
+      plKind.disabled = true;
+      plKind.value = "";
       updateStatementLearn({});
     } else {
       testActions.hidden = false;
@@ -1636,12 +1690,25 @@
     plWrap.classList.remove("wrong", "correct");
   });
 
+  plKind.addEventListener("change", () => {
+    plKind.classList.remove("wrong", "correct");
+    if (document.activeElement === plKind || document.activeElement === inputs.pl) {
+      showActorCue("pl");
+    }
+  });
+
   ["inc", "disc", "pl"].forEach((key) => {
     inputs[key].addEventListener("focus", () => showActorCue(key));
     inputs[key].addEventListener("click", () => showActorCue(key));
     inputs[key].addEventListener("blur", () => {
       setTimeout(syncActorCue, 0);
     });
+  });
+
+  plKind.addEventListener("focus", () => showActorCue("pl"));
+  plKind.addEventListener("click", () => showActorCue("pl"));
+  plKind.addEventListener("blur", () => {
+    setTimeout(syncActorCue, 0);
   });
 
   document.querySelectorAll("#modeTabs .tab").forEach((tab) => {
